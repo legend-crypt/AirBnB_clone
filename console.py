@@ -151,6 +151,35 @@ class HBNBCommand(cmd.Cmd):
                     setattr(models.storage.all()[key], args[2], args[3])
                     models.storage.save()
 
+    def do_count(self, arg):
+        """Retrieve the number of instances of a class"""
+        count = sum(arg in key for key,
+                    value in models.storage.all().items())
+        print(count)
+
+    def default(self, arg):
+        """Default class """
+        commands = {"all": self.do_all,
+                    "count": self.do_count,
+                    "show": self.do_show,
+                    "destroy": self.do_destroy,
+                    "update": self.do_update}
+
+        args = arg.split(".")
+        if len(args) == 2:
+            names = ["BaseModel", "User", "State",
+                     "City", "Amenity", "Place", "Review"]
+
+            if args[0] in names:
+                if args[1] in commands:
+                    commands[args[1]](args[0])
+                else:
+                    print("** command not found **")
+            else:
+                print("** class doesn't exist **")
+        else:
+            print("** command not found **")
+
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
