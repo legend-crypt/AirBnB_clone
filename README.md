@@ -14,3 +14,9 @@ create a simple flow of serialization/deserialization: Instance <-> Dictionary <
 create all classes used for AirBnB (User, State, City, Place…) that inherit from BaseModel
 create the first abstracted storage engine of the project: File storage.
 create all unittests to validate all our classes and storage engine
+-----------------------
+- A User will have to execute the `console.py` and type in a command 
+- `create` to create an object a class eg, `create BaseModel`
+- `show` to output a specific class object eg, `show BaseModel <id>` 
+- `destory` to delete a specific class object eg, `destroy BaseModel <id>`
+- `all` to output a all class object eg, `all BaseModel` 
