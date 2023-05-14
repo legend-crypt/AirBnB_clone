@@ -5,6 +5,11 @@ import cmd
 import models
 from models.base_model import BaseModel
 from models.user import User
+from models.amenity import Amenity
+from models.city import City
+from models.state import State
+from models.place import Place
+from models.review import Review
 
 
 class HBNBCommand(cmd.Cmd):
@@ -25,23 +30,41 @@ class HBNBCommand(cmd.Cmd):
 
     def do_create(self, arg):
         """Creates a new instance of BaseModel"""
+
+        objects = {
+                "BaseModel": BaseModel(), "User": User(),
+                "City": City(), "State": State(),
+                "Amenity": Amenity, "Place": Place(),
+                "Review": Review()
+                }
+        cap_arg = arg.capitalize()
+
         if not arg:
             print("** class name missing **")
-        elif arg != "BaseModel":
+        elif cap_arg not in objects:
             print("** class doesn't exist **")
         else:
-            new = BaseModel()
+            new = objects[cap_arg]
             new.save()
             print(new.id)
 
     def do_show(self, arg):
         """Prints the string representation of an instance
         based on the class name and id"""
+
+        objects = {
+                "BaseModel": BaseModel(), "User": User(),
+                "City": City(), "State": State(),
+                "Amenity": Amenity, "Place": Place(),
+                "Review": Review()
+                }
+        cap_args = arg.capitalize()
+
         if not arg:
             print("** class name missing **")
         else:
-            args = arg.split()
-            if args[0] != "BaseModel":
+            args = cap_args.split()
+            if args[0] not in objects:
                 print("** class doesn't exist **")
             elif len(args) == 1:
                 print("** instance id missing **")
@@ -54,11 +77,18 @@ class HBNBCommand(cmd.Cmd):
 
     def do_destroy(self, arg):
         """Deletes an instance based on the class name and id"""
+        objects = {
+                "BaseModel": BaseModel(), "User": User(),
+                "City": City(), "State": State(),
+                "Amenity": Amenity, "Place": Place(),
+                "Review": Review()
+                }
+        cap_arg = arg.capitalize()
         if not arg:
             print("** class name missing **")
         else:
-            args = arg.split()
-            if args[0] != "BaseModel":
+            args = cap_arg.split()
+            if args[0] not in objects:
                 print("** class doesn't exist **")
             elif len(args) == 1:
                 print("** instance id missing **")
@@ -73,12 +103,19 @@ class HBNBCommand(cmd.Cmd):
     def do_all(self, arg):
         """Prints all string representation of all
         instances based or not on the class name"""
+        objects = {
+                "BaseModel": BaseModel(), "User": User(),
+                "City": City(), "State": State(),
+                "Amenity": Amenity, "Place": Place(),
+                "Review": Review()
+                }
+        cap_arg = arg.capitalize()
         if not arg:
             for key, value in models.storage.all().items():
                 print(value)
         else:
-            args = arg.split()
-            if args[0] != "BaseModel":
+            args = cap_arg.split()
+            if args[0] not in objects:
                 print("** class doesn't exist **")
             else:
                 for key, value in models.storage.all().items():
@@ -87,11 +124,18 @@ class HBNBCommand(cmd.Cmd):
     def do_update(self, arg):
         """Updates an instance based on the class name and
         id by adding or updating attribute"""
+        objects = {
+                "BaseModel": BaseModel(), "User": User(),
+                "City": City(), "State": State(),
+                "Amenity": Amenity, "Place": Place(),
+                "Review": Review()
+                }
+        cap_arg = arg.capitalize()
         if not arg:
             print("** class name missing **")
         else:
-            args = arg.split()
-            if args[0] != "BaseModel":
+            args = cap_arg.split()
+            if args[0] not in objects:
                 print("** class doesn't exist **")
             elif len(args) == 1:
                 print("** instance id missing **")

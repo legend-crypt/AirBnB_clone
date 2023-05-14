@@ -6,6 +6,11 @@ import contextlib
 import json
 from models.base_model import BaseModel
 from models.user import User
+from models.city import City
+from models.place import Place
+from models.state import State
+from models.amenity import Amenity
+from models.review import Review
 
 
 class FileStorage:
@@ -28,7 +33,7 @@ class FileStorage:
             key: value.to_dict() for key, value in
             FileStorage.__objects.items()}
         with open(FileStorage.__file_path, mode='w', encoding='utf-8') as f:
-            json.dump(new_dict, f)
+            json.dump(new_dict, f, indent=4)
 
     def reload(self):
         """Deserializes the JSON file to __objects"""
