@@ -45,3 +45,31 @@ class FileStorage:
                 class_name = value['__class__']
                 del value['__class__']
                 self.new(eval(class_name)(**value))
+
+    def classes(self):
+        """Returns a dictionary of valid classes"""
+        return {
+                "BaseModel": BaseModel,
+                "User": User,
+                "City": City,
+                "Place": Place,
+                "Amenity": Amenity,
+                "State": State,
+                "Review": Review
+                }
+
+    def attributes(self):
+        """Returns a dictionary of valid attributes"""
+        return {
+                "BaseModel": ["id", "created_at", "updated_at"],
+                "User": ["email", "password", "first_name", "last_name"],
+                "City": ["state_id", "name"],
+                "Place": ["city_id", "user_id", "name",
+                          "description", "number_rooms",
+                          "number_bathrooms", "max_guest",
+                          "price_by_night",
+                          "latitude", "longitude", "amenity_ids"],
+                "Amenity": ["name"],
+                "State": ["name"],
+                "Review": ["place_id", "user_id", "text"]
+                }

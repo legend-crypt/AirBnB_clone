@@ -3,18 +3,73 @@
 
 import cmd
 import models
+import json
+import re
 from models.base_model import BaseModel
-from models.user import User
-from models.amenity import Amenity
-from models.city import City
-from models.state import State
-from models.place import Place
-from models.review import Review
+from models import storage
 
 
 class HBNBCommand(cmd.Cmd):
     """Class for console"""
     prompt = '(hbnb) '
+    classes = ["BaseModel", "User", "State",
+               "City", "Amenity", "Place", "Review"]
+
+    def default(self, cmd_line):
+        """Catch commands if nothing else matches then."""
+        self._precmd(cmd_line)
+
+    def _precmd(self, arg):
+        """Intercepts commands to test for class.syntax()"""
+        match = re.search(r"^(\w*)\.(\w+)(?:\(([^)]*)\))$", arg)
+        if not match:
+            return arg
+        class_name = match[1]
+        method = match[2]
+        args = match[3]
+
+        if match_uid_and_args := re.search('^"([^"]*)"(?:, (.*))?$', args):
+            uid = match_uid_and_args[1]
+            attr_or_dict = match_uid_and_args[2]
+        else:
+            uid = args
+            attr_or_dict = False
+
+        attr_and_value = ""
+        if method == "update" and attr_or_dict:
+            if match_dict := re.search('^({.*})$', attr_or_dict):
+                self._update_dict(class_name, uid, match_dict[1])
+                return ""
+            if match_attr_and_value := re.search(
+                    '^(?:"([^"]*)")?(?:, (.*))?$', attr_or_dict):
+                attr_and_value = ((match_attr_and_value[1]
+                                   or "") + " ") + (
+                                   match_attr_and_value[2] or "")
+        command = f"{method} {class_name} {uid} {attr_and_value}"
+        self.onecmd(command)
+        return command
+
+    def _update_dict(self, class_name, uid, str_dict):
+        """Helper method for update() with a dictionary."""
+        str_dict = str_dict.replace("'", '"')
+        dict_ = json.loads(str_dict)
+        if not class_name:
+            print("** class name missing **")
+        elif class_name not in storage.classes():
+            print("** class doesn't exist **")
+        elif uid is None:
+            print("** instance id missing **")
+        else:
+            key = f"{class_name}.{uid}"
+            if key not in storage.all():
+                print("** no instance found **")
+            else:
+                attributes = storage.attributes()[class_name]
+                for attribute, value in dict_.items():
+                    if attribute in attributes:
+                        value = attributes[attribute](value)
+                    setattr(storage.all()[key], attribute, value)
+                storage.all()[key].save()
 
     def do_quit(self, arg):
         """Quit command to exit the program"""
@@ -30,67 +85,43 @@ class HBNBCommand(cmd.Cmd):
 
     def do_create(self, arg):
         """Creates a new instance of BaseModel"""
-
-        objects = {
-                "BaseModel": BaseModel(), "User": User(),
-                "City": City(), "State": State(),
-                "Amenity": Amenity, "Place": Place(),
-                "Review": Review()
-                }
-        cap_arg = arg.capitalize()
-
         if not arg:
             print("** class name missing **")
-        elif cap_arg not in objects:
+        elif arg not in self.classes:
             print("** class doesn't exist **")
         else:
-            new = objects[cap_arg]
+            new = eval(arg)()
             new.save()
             print(new.id)
 
     def do_show(self, arg):
         """Prints the string representation of an instance
         based on the class name and id"""
-
-        objects = {
-                "BaseModel": BaseModel(), "User": User(),
-                "City": City(), "State": State(),
-                "Amenity": Amenity, "Place": Place(),
-                "Review": Review()
-                }
-        cap_args = arg.capitalize()
-
         if not arg:
             print("** class name missing **")
         else:
-            args = cap_args.split()
-            if args[0] not in objects:
+            args = arg.split()
+            if args[0] not in self.classes:
                 print("** class doesn't exist **")
-            elif len(args) == 1:
+            elif len(args) < 2:
                 print("** instance id missing **")
             else:
-                key = f'{args[0]}.{args[1]}'
-                if key in models.storage.all():
-                    print(models.storage.all()[key])
+                key = f"{args[0]}.{args[1]}"
+                instances = models.storage.all()
+                if key in instances:
+                    print(instances[key])
                 else:
                     print("** no instance found **")
 
     def do_destroy(self, arg):
         """Deletes an instance based on the class name and id"""
-        objects = {
-                "BaseModel": BaseModel(), "User": User(),
-                "City": City(), "State": State(),
-                "Amenity": Amenity, "Place": Place(),
-                "Review": Review()
-                }
-        cap_arg = arg.capitalize()
         if not arg:
             print("** class name missing **")
         else:
-            args = cap_arg.split()
-            if args[0] not in objects:
+            args = arg.split()
+            if args[0] not in self.classes:
                 print("** class doesn't exist **")
-            elif len(args) == 1:
+            elif len(args) < 2:
                 print("** instance id missing **")
             else:
                 key = f'{args[0]}.{args[1]}'
@@ -103,82 +134,73 @@ class HBNBCommand(cmd.Cmd):
     def do_all(self, arg):
         """Prints all string representation of all
         instances based or not on the class name"""
-        objects = {
-                "BaseModel": BaseModel(), "User": User(),
-                "City": City(), "State": State(),
-                "Amenity": Amenity, "Place": Place(),
-                "Review": Review()
-                }
-        cap_arg = arg.capitalize()
+        instances = models.storage.all()
         if not arg:
-            for key, value in models.storage.all().items():
-                print(value)
+            object_list = [str(value) for key, value in instances.items()]
+            print(object_list)
+        elif arg not in self.classes:
+            print("** class doesn't exist **")
         else:
-            args = cap_arg.split()
-            if args[0] not in objects:
-                print("** class doesn't exist **")
-            else:
-                for key, value in models.storage.all().items():
-                    print(value)
+            object_list = [
+                    str(value)
+                    for key, value in instances.items()
+                    if value.__class__.__name__ == arg
+                    ]
+            print(object_list)
 
     def do_update(self, arg):
         """Updates an instance based on the class name and
         id by adding or updating attribute"""
-        objects = {
-                "BaseModel": BaseModel(), "User": User(),
-                "City": City(), "State": State(),
-                "Amenity": Amenity, "Place": Place(),
-                "Review": Review()
-                }
-        cap_arg = arg.capitalize()
-        if not arg:
+
+        if arg == "" or arg is None:
             print("** class name missing **")
+            return
+
+        pattern = r'^(\S+)\s+(\S+)\s+(\S+)\s+"?([^"]*)"?$'
+        match = re.search(rex, arg)
+        class_name = match.group(1)
+        uid = match.group(2)
+        attribute = match.group(3)
+        value = match.group(4)
+        if not match:
+            print("** class name missing **")
+        elif class_name not in storage.classes():
+            print("** class doesn't exist **")
+        elif uid is None:
+            print("** instance id missing **")
         else:
-            args = cap_arg.split()
-            if args[0] not in objects:
-                print("** class doesn't exist **")
-            elif len(args) == 1:
-                print("** instance id missing **")
+            key = "{}.{}".format(class_name, uid)
+            if key not in storage.all():
+                print("** no instance found **")
+            elif not attribute:
+                print("** attribute name missing **")
+            elif not value:
+                print("** value missing **")
             else:
-                key = f'{args[0]}.{args[1]}'
-                if key not in models.storage.all():
-                    print("** no instance found **")
-                elif len(args) == 2:
-                    print("** attribute name missing **")
-                elif len(args) == 3:
-                    print("** value missing **")
+                cast = None
+                if not re.search('^".*"$', value):
+                    if '.' in value:
+                        cast = float
+                    else:
+                        cast = int
                 else:
-                    setattr(models.storage.all()[key], args[2], args[3])
-                    models.storage.save()
+                    value = value.replace('"', '')
+                attributes = storage.attributes()[class_name]
+                if attribute in attributes:
+                    value = attributes[attribute](value)
+                elif cast:
+                    try:
+                        value = cast(value)
+                    except ValueError:
+                        pass
+                setattr(storage.all()[key], attribute, value)
+                storage.all()[key].save()
 
     def do_count(self, arg):
         """Retrieve the number of instances of a class"""
         count = sum(arg in key for key,
                     value in models.storage.all().items())
         print(count)
-
-    def default(self, arg):
-        """Default class """
-        commands = {"all": self.do_all,
-                    "count": self.do_count,
-                    "show": self.do_show,
-                    "destroy": self.do_destroy,
-                    "update": self.do_update}
-
-        args = arg.split(".")
-        if len(args) == 2:
-            names = ["BaseModel", "User", "State",
-                     "City", "Amenity", "Place", "Review"]
-
-            if args[0] in names:
-                if args[1] in commands:
-                    commands[args[1]](args[0])
-                else:
-                    print("** command not found **")
-            else:
-                print("** class doesn't exist **")
-        else:
-            print("** command not found **")
 
 
 if __name__ == '__main__':

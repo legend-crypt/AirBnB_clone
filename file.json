@@ -292,5 +292,11 @@
         "email": "airbnb2@mail.com",
         "password": "root",
         "__class__": "User"
+    },
+    "BaseModel.04ed2a57-60b7-4423-9eb7-b5bbbfeb5c0e": {
+        "id": "04ed2a57-60b7-4423-9eb7-b5bbbfeb5c0e",
+        "created_at": "2023-05-15T14:54:30.195338",
+        "updated_at": "2023-05-15T14:54:30.195350",
+        "__class__": "BaseModel"
     }
 }
