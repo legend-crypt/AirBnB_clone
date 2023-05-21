@@ -1,0 +1,13 @@
+header {
+    color: #ffffff;
+    height: 70px;
+    width: 100%;
+    border-bottom: 1px solid #cccccc;
+}
+
+header img {
+    position: absolute;
+    left: 20px;
+    margin-top: auto;
+    margin-bottom: auto;
+}
